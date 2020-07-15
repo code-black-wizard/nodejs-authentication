@@ -1,13 +1,8 @@
 <template>
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-md-8 col-lg-6">
-        <form @submit.prevent="signup">
-          <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input v-model.trim="$v.username.$model" type="text" class="form-control" />
-            <div class="error" v-if="$v.username.$error">Name is required</div>
-          </div>
+      <div v-if="!isUser" class="col-md-8 col-lg-6">
+        <form @submit.prevent="signin">
          <div class="mb-3">
             <label class="form-label">Email</label>
             <input v-model.trim="$v.email.$model" type="text" class="form-control" />
@@ -23,20 +18,22 @@
           <button :disabled="submitStatus === 'PENDING'" type="submit" class="btn btn-dark custom-btn">Sign up</button>
         </form>
       </div>
+      <div v-else>
+        <h2 class="test-center">You are logged in</h2>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { required, minLength, email } from 'vuelidate/lib/validators'
+import { mapGetters } from 'vuex'
 
 export default {
   data() {
     return {
-      username: '',
       email: '',
-      password: '',
-      submitStatus: null
+      password: ''
     }
   },
   validations: {
@@ -44,45 +41,30 @@ export default {
       required,
       minLength: minLength(6)
     },
-    username: {
-      required
-    },
     email: {
       required,
       email
     }
   },
   methods: {
-    signup() {
+    signin() {
       this.$v.$touch()
       if (this.$v.$invalid) {
-        this.submitStatus = 'ERROR'
+        this.$store.commit('SET_SUBMIT_STATUS', 'ERROR')
       } else {
-        this.submitStatus = 'PENDING'
-        this.$axios.post('/sign-up', {
-          username: this.username,
+        this.$store.commit('SET_SUBMIT_STATUS', 'PENDING')
+        this.$store.dispatch('signin', {
           email: this.email,
           password: this.password
         })
-          .then(res => {
-            this.submitStatus = null
-            console.log(res)
-            this.$notify({
-              group: 'success',
-              title: res.data.message,
-              type: 'success'
-            })
-          })
-          .catch(err => {
-            this.submitStatus = null
-            this.$notify({
-              group: 'error',
-              title: err.response.data.message,
-              type: 'error' 
-            }) 
-          })
       }
     }
+  },
+  computed: {
+    ...mapGetters({
+      submitStatus: 'getSubmitStatus',
+      isUser: 'getToken'
+    })
   }
 }
 </script>

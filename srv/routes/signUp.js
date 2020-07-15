@@ -4,7 +4,7 @@ const { check, validationResult } = require('express-validator')
 const { User } = require('../model')
 
 module.exports = (app, handleErr) => {
-  app.post('/sign-up', [
+  app.post('/signup', [
     check('username', 'Please Enter a Valid Username').not().isEmpty().trim(),
     check('email', 'Please enter a valid email').isEmail().not().isEmpty().trim(),
     check('password', 'Please enter a valid password').isLength({ min: 6 }).not().isEmpty().trim()
